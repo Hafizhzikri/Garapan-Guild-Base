@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.25;
+
+contract TES1 {
+    string public listName;
+    uint256 public totalJoined;
+    uint256 public constant MAX_MEMBERS = 100;
+
+    mapping(address => bool) public isJoined;
+    address[] public members;
+
+    event Joined(address indexed user, uint256 position);
+
+    constructor(string memory _listName) {
+        listName = _listName;
+    }
+
+    function join() external {
+        require(!isJoined[msg.sender], "Already joined");
+        require(totalJoined < MAX_MEMBERS, "Waitlist full");
+
+        isJoined[msg.sender] = true;
+        members.push(msg.sender);
+        totalJoined += 1;
+
+        emit Joined(msg.sender, totalJoined);
+    }
+
+    function getMember(uint256 index) external view returns (address) {
+        require(index < members.length, "Index out of range");
+        return members[index];
+    }
+
+    function getMembersCount() external view returns (uint256) {
+        return members.length;
+    }
+}
