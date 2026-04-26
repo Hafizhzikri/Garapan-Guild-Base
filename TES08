@@ -1,0 +1,76 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.25;
+
+contract TES8 {
+    string public name = "SPION";
+    string public symbol = "PION";
+    uint256 public totalSupply;
+    uint256 private _tokenIdCounter;
+    address public owner;
+
+    mapping(uint256 => address) private _owners;
+    mapping(address => uint256) private _balances;
+    mapping(uint256 => string) private _tokenURIs;
+
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+    event Mint(address indexed to, uint256 indexed tokenId, string tokenURI);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "SimpleNFT: caller is not the owner");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+        _tokenIdCounter = 1;
+    }
+
+    function balanceOf(address account) public view returns (uint256) {
+        require(account != address(0), "SimpleNFT: balance query for the zero address");
+        return _balances[account];
+    }
+
+    function ownerOf(uint256 tokenId) public view returns (address) {
+        address tokenOwner = _owners[tokenId];
+        require(tokenOwner != address(0), "SimpleNFT: owner query for nonexistent token");
+        return tokenOwner;
+    }
+
+    function tokenURI(uint256 tokenId) public view returns (string memory) {
+        require(_exists(tokenId), "SimpleNFT: URI query for nonexistent token");
+        return _tokenURIs[tokenId];
+    }
+
+    function mint(address to, string memory uri) public onlyOwner returns (uint256) {
+        require(to != address(0), "SimpleNFT: mint to the zero address");
+
+        uint256 tokenId = _tokenIdCounter;
+        _tokenIdCounter += 1;
+        totalSupply += 1;
+
+        _owners[tokenId] = to;
+        _balances[to] += 1;
+        _tokenURIs[tokenId] = uri;
+
+        emit Transfer(address(0), to, tokenId);
+        emit Mint(to, tokenId, uri);
+
+        return tokenId;
+    }
+
+    function transfer(address to, uint256 tokenId) public {
+        address tokenOwner = ownerOf(tokenId);
+        require(msg.sender == tokenOwner, "SimpleNFT: transfer caller is not owner");
+        require(to != address(0), "SimpleNFT: transfer to the zero address");
+
+        _balances[tokenOwner] -= 1;
+        _balances[to] += 1;
+        _owners[tokenId] = to;
+
+        emit Transfer(tokenOwner, to, tokenId);
+    }
+
+    function _exists(uint256 tokenId) internal view returns (bool) {
+        return _owners[tokenId] != address(0);
+    }
+}
